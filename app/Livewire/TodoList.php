@@ -30,16 +30,25 @@ class TodoList extends Component
         Todo::create($validated);
 
     // clear the input 
-        $this->  reset('name');  
+        $this->reset('name');  
     // send flash message
        session()->flash('success','Created');
+       $this->resetPage();
     }
 
-    public function delete(Todo $todoID){
-        // Todo::find($todoID)->delete();
-
-        $todoID->delete();
+    public function delete(Todo $todoID)
+    {
+        try {
+            $todoID->delete();
+            session()->flash('success', 'Todo deleted successfully!');
+        } catch (Exception $e) {
+            session()->flash('error', 'Failed to delete todo!');
+            return;
+        }
+    
+        // Optionally, emit an event to the frontend or handle post-delete logic
     }
+    
 
     public function toggle($todoID){
         $todo = Todo::find($todoID);
@@ -56,16 +65,26 @@ class TodoList extends Component
         $this->reset('editingtodoID', 'editingTodoName');
     }
     
-    public function update(){
-        $this->validateOnly('editingTodoName');
-        Todo::find($this->editingTodoID)->update(
-            [
-                'name' => $this->editingTodoName
-            ]
-        );
+    // public function update(){
+    //     $this->validateOnly('editingTodoName');
+    //     Todo::find($this->editingTodoID)->update(
+    //         [
+    //             'name' => $this->editingTodoName
+    //         ]
+    //     );
+    //     $this->cancelEdit();
+    // }
+    public function update() {
+        $this->validate([
+            'editingTodoName' => 'required|min:3|max:50',
+        ]);
+        
+        Todo::find($this->editingtodoID)->update([
+            'name' => $this->editingTodoName
+        ]);
+    
         $this->cancelEdit();
     }
-
     public function render()
     {
         
